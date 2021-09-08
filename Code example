@@ -1,0 +1,117 @@
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+using UnityEngine.UI;
+
+public class Mana : MonoBehaviour
+{
+    public Text myMana;
+    public GameObject manaGameObject;
+    GameObject player;
+    public Sprite unaffordableIcon;
+    public Sprite canAffordIcon;
+ 
+    void Start()
+    {
+        player = GameObject.Find("player");
+        myMana.text = (player.GetComponent<player_variables>().current_mana + player_variables.modded_mana - player_variables.negativeMana).ToString();
+    }
+
+    public void UpdateMana()
+    {
+        if (player.GetComponent<player_variables>().current_mana <= 0)
+        {
+            manaGameObject.<Image>().sprite = unaffordableIcon;
+        }
+        else
+        {
+            manaGameObject.GetComponent<Image>().sprite = canAffordIcon;
+        }
+        
+        myMana.text = (player.GetComponent<player_variables>().current_mana).ToString();
+     
+          List<GameObject> allCards;
+					
+          allCards.Add(GameObject.Find("TurnManager").GetComponent<TurnManager>().hand_cards);
+          allCards.Add(GameObject.Find("TurnManager").GetComponent<TurnManager>().discard_cards);
+          allCards.Add(GameObject.Find("TurnManager").GetComponent<TurnManager>().draw_cards);
+
+          
+        ChangeColors(allCards);
+
+    }
+
+   private void ChangeColors(List<GameObject> cards){
+        
+        foreach (GameObject child in cards)
+        {
+            int totalCost = child.<Card>().cost + child.<Card>().moddedCost + player_variables.moddedGlobalCost;
+            int currentMana = player.<player_variables>().current_mana; 
+            string color;
+            
+            if (totalCost > child.<Card>().baselineCost)
+            {
+                color = "red"
+            }
+            else if (totalCost <child.<Card>().baselineCost)
+            {
+                color = "red"
+            }else
+            {
+               color = "white"
+            }
+            
+            switch(color)
+            {
+              case"red":
+                 ChangeTextColor(new Color32(230,55,18,255));
+              break;
+              
+              case"green":
+                 ChangeTextColor(Color.Green);
+              break;
+              
+              case"white":
+                 ChangeTextColor(Color.White));
+              break;
+            }
+
+            if (totalCost > currentMana && totalCost!=0){
+            //unafforable graphic
+                child.Image("unaffordable").GetComponent<CanvasGroup>().alpha = 1;
+            }else{
+                child.Image("unaffordable").GetComponent<CanvasGroup>().alpha = 0;
+            }
+
+            child.UpdateCardCost();
+
+        }
+    }
+    
+    private ChangeTextColor(Color givenColor)
+    {
+        child.transform.<Text>().color = givenColor;
+    }
+    
+     IEnumerator SelfDestruct(float delay, bool isTurnEnd)
+    {
+   
+     if(isTurnEnd == false)
+     {
+        return;
+     }
+     
+     yield return new WaitForSeconds(delay);
+     
+     Destroy(gameObject);
+    }
+
+    public void ResetMana()
+    {
+        player.<player_variables>().current_mana = player_variables.max_mana;
+        UpdateMana(); 
+        StartCoroutine(SelfDestruct(1.2f));
+
+    }
+}
+
